@@ -3,18 +3,18 @@ const DELTA = 1/100;
 function GameWorld() {
 
     this.balls= [
-        [new Vector2(1022,413),COLOR.YELLOW],//1
-        [new Vector2(1056, 393), COLOR.YELLOW],//2
+        [new Vector2(1025,418),COLOR.ONE],//1 1022, 413
         [new Vector2(1056, 433), COLOR.RED], //3
-        [new Vector2(1090, 374), COLOR.RED], //4
-        [new Vector2(1090, 413), COLOR.BLACK], //5
+        [new Vector2(1056, 393), COLOR.YELLOW],//2
         [new Vector2(1090, 452), COLOR.YELLOW], //6
-        [new Vector2(1126, 354), COLOR.YELLOW], //7
+        [new Vector2(1096, 420), COLOR.EIGHT], //5 1090, 413
+        [new Vector2(1090, 374), COLOR.RED], //4
+        [new Vector2(1126, 472), COLOR.YELLOW], //10
         [new Vector2(1126, 393), COLOR.RED], //8
-        [new Vector2(1126, 433), COLOR.YELLOW], //9
-        [new Vector2(1126, 472), COLOR.RED], //10
+        [new Vector2(1126, 354), COLOR.BLACK], //7
+        [new Vector2(1126, 433), COLOR.BLACK], //9
         [new Vector2(1162, 335), COLOR.RED], //11
-        [new Vector2(1162, 374), COLOR.RED], //12
+        [new Vector2(1162, 374), COLOR.YELLOW], //12
         [new Vector2(1162, 413), COLOR.YELLOW], //13
         [new Vector2(1162, 452), COLOR.RED], //14
         [new Vector2(1162, 491), COLOR.YELLOW], //15
@@ -29,7 +29,20 @@ function GameWorld() {
 
 }
 
+GameWorld.prototype.handleCollisions = function() {
+    
+    for (let i = 0 ; i < this.balls.length ; i++ ) {
+        for(let j = i + 1 ; j < this.balls.length ; j++) {
+            const firstBall = this.balls[i];
+            const secondBall = this.balls[j];
+            firstBall.collideWith(secondBall);
+        }
+    }
+}
+
 GameWorld.prototype.update = function() {
+
+    this.handleCollisions();
 
     this.stick.update();
     
@@ -55,5 +68,15 @@ GameWorld.prototype.draw = function() {
 }
 
 GameWorld.prototype.ballsMoving = function() {
-    return this.whiteBall.moving;
+    
+    let ballsMoving = false;
+
+    for( let i = 0 ; i < this.balls.length ; i++ ) {
+        if(this.balls[i].moving){
+            ballsMoving = true;
+            break;
+        }
+    }
+
+    return ballsMoving;
 }
