@@ -1,6 +1,6 @@
-
 const BALL_ORIGIN = new Vector2(25, 25);
 const BALL_DIAMETER = 38;
+const BALL_RADIUS = BALL_DIAMETER / 2;
 
 function Ball(position, color) {
     this.position = position;
@@ -9,29 +9,29 @@ function Ball(position, color) {
     this.sprite = getBallSpriteByColor(color);
 }
 
-Ball.prototype.update = function(delta) {
+Ball.prototype.update = function (delta) {
     this.position.addTo(this.velocity.mult(delta));
 
-    this.velocity = this.velocity.mult(.98);
+    //Apply friction
+    this.velocity = this.velocity.mult(0.984);
 
-    if(this.velocity.length() < 5) {
+    if (this.velocity.length() < 5) {
         this.velocity = new Vector2();
         this.moving = false;
     }
 }
 
-Ball.prototype.draw = function() {
+Ball.prototype.draw = function () {
     Canvas.drawImage(this.sprite, this.position, BALL_ORIGIN);
 }
 
-Ball.prototype.shoot = function(power, rotation) {
-    
+Ball.prototype.shoot = function (power, rotation) {
+
     this.velocity = new Vector2(power * Math.cos(rotation), power * Math.sin(rotation));
     this.moving = true;
 }
 
-Ball.prototype.collideWith = function(ball) {
-
+Ball.prototype.collideWithBall = function (ball) {
 
     //find a normal vector
     const n = this.position.subtract(ball.position);
@@ -39,20 +39,19 @@ Ball.prototype.collideWith = function(ball) {
     //find distance
     const dist = n.length();
 
-    if(dist > BALL_DIAMETER) {
+    if (dist > BALL_DIAMETER) {
         return;
     }
 
     //find minimum translation distance
     const mtd = n.mult((BALL_DIAMETER - dist) / dist);
 
-    //push balls apart
-    this.position = this.position.add(mtd.mult(1/2));
-    ball.position = ball.position.subtract(mtd.mult(1/2));
-    
+    //push-pull balls apart
+    this.position = this.position.add(mtd.mult(1 / 2));
+    ball.position = ball.position.subtract(mtd.mult(1 / 2));
 
     //find unit normal vector
-    const un = n.mult(1/n.length());
+    const un = n.mult(1 / n.length());
 
     //find unit tangent vector
     const ut = new Vector2(-un.y, un.x);
@@ -82,4 +81,47 @@ Ball.prototype.collideWith = function(ball) {
 
 }
 
+Ball.prototype.collideWithTable = function (table) {
 
+    if (!this.moving) {
+        return;
+    }
+
+    let collided = false;
+
+    if (this.position.y <= table.TopY + BALL_RADIUS) {
+        this.velocity = new Vector2(this.velocity.x, -this.velocity.y);
+        collided = true;
+    }
+
+    if (this.position.x >= table.RightX - BALL_RADIUS) {
+        this.velocity = new Vector2(-this.velocity.x, this.velocity.y);
+        collided = true;
+    }
+
+    if (this.position.y >= table.BottomY - BALL_RADIUS) {
+        this.velocity = new Vector2(this.velocity.x, -this.velocity.y);
+        collided = true;
+    }
+
+    if (this.position.x <= table.LeftX + BALL_RADIUS) {
+        this.velocity = new Vector2(-this.velocity.x, this.velocity.y);
+        collided = true;
+    }
+
+    if(collided) {
+        this.velocity = this.velocity.mult(.98);
+    }
+
+}
+
+Ball.prototype.collideWith = function (object) {
+
+    if (object instanceof Ball) {
+        this.collideWithBall(object);
+    } else {
+        this.collideWithTable(object);
+    }
+
+
+}
